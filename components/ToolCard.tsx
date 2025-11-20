@@ -1,14 +1,16 @@
+
 import React from 'react';
-import { Tool, Language } from '../types';
-import { PATTERNS } from '../constants';
+import { Tool, Language, Pattern } from '../types';
 import { ExternalLink, Star, Terminal, Box, Code, LayoutTemplate } from 'lucide-react';
 
 interface ToolCardProps {
   tool: Tool;
   onSelect: (tool: Tool) => void;
+  ui: any;
+  patterns: Pattern[];
 }
 
-const ToolCard: React.FC<ToolCardProps> = ({ tool, onSelect }) => {
+const ToolCard: React.FC<ToolCardProps> = ({ tool, onSelect, ui, patterns }) => {
   const getLangColor = (lang: Language) => {
     switch (lang) {
       case Language.Python: return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
@@ -19,8 +21,9 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onSelect }) => {
   };
 
   const getPatternName = (id: string) => {
-    const pattern = PATTERNS.find(p => p.id === id);
-    return pattern ? pattern.name.split(' ')[0] : id; // Short name
+    const pattern = patterns.find(p => p.id === id);
+    // Truncate long translated names for the card
+    return pattern ? pattern.name.split(/[\s(（]/)[0] : id; 
   };
 
   return (
@@ -54,7 +57,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ tool, onSelect }) => {
       <div className="mb-4">
         <div className="flex items-center gap-1 text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">
           <LayoutTemplate size={12} />
-          <span>Supported Patterns</span>
+          <span>{ui.supportedPatterns}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {tool.supportedPatterns.slice(0, 3).map(patternId => (

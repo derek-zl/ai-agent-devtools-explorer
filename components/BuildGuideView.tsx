@@ -1,13 +1,18 @@
 
 import React, { useState } from 'react';
-import { BUILD_EXAMPLES } from '../constants';
+import { BuilderExample } from '../types';
 import { Code2, Terminal, Check, Copy, Rocket, BookOpen } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-const BuildGuideView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState(BUILD_EXAMPLES[0].id);
+interface BuildGuideViewProps {
+  examples: BuilderExample[];
+  ui: any;
+}
 
-  const activeExample = BUILD_EXAMPLES.find(e => e.id === activeTab) || BUILD_EXAMPLES[0];
+const BuildGuideView: React.FC<BuildGuideViewProps> = ({ examples, ui }) => {
+  const [activeTab, setActiveTab] = useState(examples[0].id);
+
+  const activeExample = examples.find(e => e.id === activeTab) || examples[0];
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -16,10 +21,9 @@ const BuildGuideView: React.FC = () => {
   return (
     <div className="animate-in fade-in duration-500">
         <div className="mb-10">
-            <h2 className="text-3xl font-bold text-white mb-3">Build Your Own Agent</h2>
+            <h2 className="text-3xl font-bold text-white mb-3">{ui.navBuild}</h2>
             <p className="text-slate-400">
-                Stop using frameworks and start understanding the core. Here are the simplest possible implementations 
-                of a <span className="text-indigo-400 font-semibold">General Agent</span> and a <span className="text-indigo-400 font-semibold">Coding Agent</span> using the Gemini Python SDK.
+               {ui.headerSubtitle}
             </p>
         </div>
 
@@ -27,7 +31,7 @@ const BuildGuideView: React.FC = () => {
             
             {/* Sidebar / Tabs */}
             <div className="lg:w-1/3 space-y-4">
-                {BUILD_EXAMPLES.map(example => (
+                {examples.map(example => (
                     <button
                         key={example.id}
                         onClick={() => setActiveTab(example.id)}
@@ -50,7 +54,7 @@ const BuildGuideView: React.FC = () => {
                         <h3 className={`text-lg font-bold mb-1 ${activeTab === example.id ? 'text-white' : 'text-slate-300'}`}>
                             {example.title}
                         </h3>
-                        <p className="text-sm text-slate-400 leading-relaxed">
+                        <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">
                             {example.description}
                         </p>
                     </button>
@@ -59,7 +63,7 @@ const BuildGuideView: React.FC = () => {
                 <div className="p-5 bg-slate-900/80 border border-slate-800 rounded-xl">
                     <h4 className="flex items-center gap-2 font-semibold text-white mb-3">
                         <BookOpen size={18} className="text-purple-400"/>
-                        Why this works
+                        {ui.whyWorks}
                     </h4>
                     <p className="text-sm text-slate-400 leading-relaxed">
                         Most "Agent Frameworks" are just wrappers around these exact API calls. 
@@ -86,7 +90,7 @@ const BuildGuideView: React.FC = () => {
                             className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg"
                         >
                             <Copy size={14} />
-                            Copy Code
+                            {ui.copyCode}
                         </button>
                     </div>
                     
@@ -94,7 +98,7 @@ const BuildGuideView: React.FC = () => {
                          {/* Explanation Block */}
                         <div className="mb-6 p-4 bg-indigo-900/10 border border-indigo-500/20 rounded-xl">
                             <h4 className="text-indigo-300 font-semibold mb-1 flex items-center gap-2">
-                                <Code2 size={16}/> Logic Breakdown
+                                <Code2 size={16}/> {ui.logicBreakdown}
                             </h4>
                             <p className="text-sm text-slate-300">
                                 {activeExample.explanation}

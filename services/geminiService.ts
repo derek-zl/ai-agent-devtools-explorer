@@ -1,5 +1,7 @@
+
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { INITIAL_SYSTEM_INSTRUCTION } from "../constants";
+import { SupportedLang } from "../types";
 
 const getClient = (): GoogleGenAI => {
   const apiKey = process.env.API_KEY;
@@ -41,9 +43,16 @@ export const sendMessageToGemini = async (
   }
 };
 
-export const generateToolComparison = async (toolName: string): Promise<string> => {
+export const generateToolComparison = async (toolName: string, lang: SupportedLang = 'en'): Promise<string> => {
   try {
     const ai = getClient();
+    const langMap = {
+      'en': 'English',
+      'zh': 'Chinese (Simplified)',
+      'ja': 'Japanese'
+    };
+    const targetLang = langMap[lang];
+
     const prompt = `Provide a detailed technical breakdown of the AI tool "${toolName}". 
     Include: 
     1. Core Philosophy 
@@ -51,6 +60,8 @@ export const generateToolComparison = async (toolName: string): Promise<string> 
     3. Best Use Case 
     4. A simple code snippet (Hello World equivalent) in its primary language.
     5. Pros and Cons.
+    
+    IMPORTANT: Output the entire response in ${targetLang}.
     Format as Markdown.`;
 
     const response = await ai.models.generateContent({

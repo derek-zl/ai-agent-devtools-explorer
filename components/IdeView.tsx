@@ -1,20 +1,25 @@
 
 import React, { useState } from 'react';
-import { CODING_TOOLS, PATTERNS } from '../constants';
-import { CodingToolType, Pattern } from '../types';
+import { CodingTool, Pattern } from '../types';
 import { Monitor, Terminal, Puzzle, Layers, ExternalLink, Zap, Search, GitBranch, Code2, Box, ArrowRight } from 'lucide-react';
 import PatternDetailModal from './PatternDetailModal';
 
-const IdeView: React.FC = () => {
+interface IdeViewProps {
+  tools: CodingTool[];
+  patterns: Pattern[];
+  ui: any;
+}
+
+const IdeView: React.FC<IdeViewProps> = ({ tools, patterns, ui }) => {
   const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null);
 
   const handlePatternClick = (patternId: string | undefined) => {
     if (!patternId) return;
-    const found = PATTERNS.find(p => p.id === patternId);
+    const found = patterns.find(p => p.id === patternId);
     if (found) setSelectedPattern(found);
   };
 
-  const getIcon = (type: CodingToolType) => {
+  const getIcon = (type: string) => {
     switch (type) {
       case 'IDE': return <Monitor className="text-blue-400" size={24} />;
       case 'CLI': return <Terminal className="text-green-400" size={24} />;
@@ -25,27 +30,24 @@ const IdeView: React.FC = () => {
   };
 
   const getMechanismIcon = (mech: string) => {
-    if (mech.includes('Shadow')) return <Box size={16} />;
-    if (mech.includes('AST') || mech.includes('Repo')) return <GitBranch size={16} />;
+    if (mech.includes('Shadow') || mech.includes('影子')) return <Box size={16} />;
+    if (mech.includes('AST') || mech.includes('Repo') || mech.includes('地图')) return <GitBranch size={16} />;
     if (mech.includes('CRDT')) return <Zap size={16} />;
-    if (mech.includes('Context')) return <Search size={16} />;
+    if (mech.includes('Context') || mech.includes('上下文')) return <Search size={16} />;
     return <Code2 size={16} />;
   };
 
   return (
     <div className="animate-in fade-in duration-500">
       <div className="mb-10 text-center">
-        <h2 className="text-3xl font-bold text-white mb-3">AI-Native Development Environments</h2>
+        <h2 className="text-3xl font-bold text-white mb-3">{ui.navIdes}</h2>
         <p className="text-slate-400 max-w-3xl mx-auto">
-          Modern coding tools go beyond simple autocomplete. They implement complex agent architectures like 
-          <span className="text-indigo-400"> Shadow Workspaces</span>, 
-          <span className="text-indigo-400"> AST Analysis</span>, and 
-          <span className="text-indigo-400"> CRDT Collaboration</span> to write and fix code autonomously.
+          {ui.headerSubtitle}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {CODING_TOOLS.map((tool) => (
+        {tools.map((tool) => (
           <div 
             key={tool.id}
             className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-indigo-500/30 transition-all hover:shadow-lg hover:shadow-indigo-500/10 group flex flex-col h-full"
@@ -89,11 +91,11 @@ const IdeView: React.FC = () => {
                     : 'bg-slate-800/50 border-slate-700 text-slate-400 cursor-default'
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 truncate">
                     {getMechanismIcon(tool.coreMechanism)}
-                    {tool.coreMechanism}
+                    <span className="truncate">{tool.coreMechanism}</span>
                 </span>
-                {tool.relatedPatternId && <ArrowRight size={14} className="opacity-50" />}
+                {tool.relatedPatternId && <ArrowRight size={14} className="opacity-50 flex-shrink-0" />}
               </button>
             </div>
 
@@ -104,7 +106,7 @@ const IdeView: React.FC = () => {
 
             {/* Features */}
             <div className="mt-auto pt-4 border-t border-slate-800/50">
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Key Features</h4>
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{ui.keyFeatures}</h4>
               <div className="flex flex-wrap gap-2">
                 {tool.features.map(feature => (
                   <span key={feature} className="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded hover:bg-slate-700 transition-colors cursor-default">
@@ -118,7 +120,7 @@ const IdeView: React.FC = () => {
       </div>
 
       {selectedPattern && (
-        <PatternDetailModal pattern={selectedPattern} onClose={() => setSelectedPattern(null)} />
+        <PatternDetailModal pattern={selectedPattern} onClose={() => setSelectedPattern(null)} ui={ui} />
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pattern } from '../types';
 import { X, Network, BookOpen, Layers, Code, Copy } from 'lucide-react';
@@ -6,9 +7,10 @@ import ReactMarkdown from 'react-markdown';
 interface PatternDetailModalProps {
   pattern: Pattern | null;
   onClose: () => void;
+  ui?: any;
 }
 
-const PatternDetailModal: React.FC<PatternDetailModalProps> = ({ pattern, onClose }) => {
+const PatternDetailModal: React.FC<PatternDetailModalProps> = ({ pattern, onClose, ui }) => {
   if (!pattern) return null;
 
   // Helper to encode string for mermaid.ink
@@ -64,7 +66,7 @@ const PatternDetailModal: React.FC<PatternDetailModalProps> = ({ pattern, onClos
             <div>
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-indigo-300 mb-4">
                     <BookOpen size={20} />
-                    Core Principles
+                    {ui?.corePrinciples || 'Core Principles'}
                 </h3>
                 <div className="prose prose-invert prose-sm text-slate-300">
                     <ReactMarkdown>{pattern.principles}</ReactMarkdown>
@@ -75,7 +77,7 @@ const PatternDetailModal: React.FC<PatternDetailModalProps> = ({ pattern, onClos
             <div>
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-indigo-300 mb-4">
                     <Layers size={20} />
-                    Technical Architecture
+                    {ui?.techArch || 'Technical Architecture'}
                 </h3>
                 <div className="prose prose-invert prose-sm text-slate-300">
                     <ReactMarkdown>{pattern.architecture}</ReactMarkdown>
@@ -88,7 +90,7 @@ const PatternDetailModal: React.FC<PatternDetailModalProps> = ({ pattern, onClos
             <div className="w-full">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-indigo-300 mb-4">
                     <Code size={20} />
-                    Implementation Reference
+                    {ui?.implRef || 'Implementation Reference'}
                 </h3>
                 <div className="relative bg-slate-900 rounded-xl border border-slate-800 overflow-hidden group">
                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">

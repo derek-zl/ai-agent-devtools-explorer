@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
-import { Tool } from '../types';
+import { Tool, SupportedLang } from '../types';
 import { PATTERNS } from '../constants';
 import { generateToolComparison } from '../services/geminiService';
 import { X, Sparkles, Link as LinkIcon, Github, LayoutTemplate, Check } from 'lucide-react';
@@ -8,9 +9,10 @@ import ReactMarkdown from 'react-markdown';
 interface ToolDetailModalProps {
   tool: Tool | null;
   onClose: () => void;
+  appLang: SupportedLang;
 }
 
-const ToolDetailModal: React.FC<ToolDetailModalProps> = ({ tool, onClose }) => {
+const ToolDetailModal: React.FC<ToolDetailModalProps> = ({ tool, onClose, appLang }) => {
   const [details, setDetails] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -18,18 +20,22 @@ const ToolDetailModal: React.FC<ToolDetailModalProps> = ({ tool, onClose }) => {
     if (tool) {
       setLoading(true);
       setDetails(''); // Clear previous
-      generateToolComparison(tool.name)
+      // Pass the current language to the Gemini Service
+      generateToolComparison(tool.name, appLang)
         .then(text => setDetails(text))
         .catch(() => setDetails('Failed to load details.'))
         .finally(() => setLoading(false));
     }
-  }, [tool]);
+  }, [tool, appLang]);
 
   if (!tool) return null;
 
-  const getPatternName = (id: string) => {
+  const getLocalizedPatternName = (id: string) => {
     const pattern = PATTERNS.find(p => p.id === id);
-    return pattern ? pattern.name : id;
+    if (!pattern) return id;
+    if (appLang === 'zh') return pattern.name_zh || pattern.name;
+    if (appLang === 'ja') return pattern.name_ja || pattern.name;
+    return pattern.name;
   };
 
   return (
@@ -66,13 +72,13 @@ const ToolDetailModal: React.FC<ToolDetailModalProps> = ({ tool, onClose }) => {
           <div className="mb-8 bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4">
             <h3 className="flex items-center gap-2 text-indigo-400 font-semibold mb-3">
               <LayoutTemplate size={18} />
-              Supported Patterns & Architectures
+              {appLang === 'zh' ? '支持模式' : appLang === 'ja' ? '対応パターン' : 'Supported Patterns'}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {tool.supportedPatterns.map(patternId => (
                 <div key={patternId} className="flex items-center gap-2 text-slate-300 text-sm">
                   <Check size={14} className="text-indigo-400" />
-                  {getPatternName(patternId)}
+                  {getLocalizedPatternName(patternId)}
                 </div>
               ))}
             </div>
@@ -81,7 +87,11 @@ const ToolDetailModal: React.FC<ToolDetailModalProps> = ({ tool, onClose }) => {
           {loading ? (
             <div className="flex flex-col items-center justify-center h-48 space-y-4">
               <Sparkles className="animate-pulse text-indigo-500" size={48} />
-              <p className="text-slate-400 animate-pulse">Asking Gemini about {tool.name}...</p>
+              <p className="text-slate-400 animate-pulse">
+                {appLang === 'zh' ? `正在询问 Gemini 关于 ${tool.name}...` : 
+                 appLang === 'ja' ? `Geminiに${tool.name}について聞いています...` : 
+                 `Asking Gemini about ${tool.name}...`}
+              </p>
             </div>
           ) : (
             <div className="prose prose-invert prose-slate max-w-none">
@@ -99,7 +109,7 @@ const ToolDetailModal: React.FC<ToolDetailModalProps> = ({ tool, onClose }) => {
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               <LinkIcon size={16} />
-              Visit Official Site
+              {appLang === 'zh' ? '访问官网' : appLang === 'ja' ? '公式サイト' : 'Visit Official Site'}
             </a>
         </div>
       </div>

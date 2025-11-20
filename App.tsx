@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import { TOOLS } from './constants';
-import { Language, Tool } from './types';
+import { TOOLS, PATTERNS, CODING_TOOLS, BUILD_EXAMPLES, UI_TEXT } from './constants';
+import { Language, Tool, SupportedLang } from './types';
 import ToolCard from './components/ToolCard';
 import ChatOverlay from './components/ChatOverlay';
 import ToolDetailModal from './components/ToolDetailModal';
@@ -9,7 +9,7 @@ import PatternsView from './components/PatternsView';
 import IdeView from './components/IdeView';
 import BuildGuideView from './components/BuildGuideView';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ZAxis } from 'recharts';
-import { Search, LayoutGrid, BarChart3, Cpu, Layers, Wrench, MonitorPlay, Hammer } from 'lucide-react';
+import { Search, LayoutGrid, BarChart3, Cpu, Layers, Wrench, MonitorPlay, Hammer, Globe } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'tools' | 'patterns' | 'ides' | 'build'>('tools');
@@ -17,15 +17,61 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'chart'>('grid');
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+  const [appLang, setAppLang] = useState<SupportedLang>('en');
+
+  // Helper to get localized content for any object with optional _zh/_ja fields
+  const getLocalizedContent = (obj: any, key: string) => {
+    if (appLang === 'en') return obj[key];
+    if (appLang === 'zh' && obj[`${key}_zh`]) return obj[`${key}_zh`];
+    if (appLang === 'ja' && obj[`${key}_ja`]) return obj[`${key}_ja`];
+    return obj[key]; // Fallback to default
+  };
+
+  // Prepare localized data
+  const localizedTools = useMemo(() => TOOLS.map(t => ({
+    ...t,
+    description: getLocalizedContent(t, 'description')
+  })), [appLang]);
+
+  const localizedPatterns = useMemo(() => PATTERNS.map(p => ({
+    ...p,
+    name: getLocalizedContent(p, 'name'),
+    description: getLocalizedContent(p, 'description'),
+    useCase: getLocalizedContent(p, 'useCase'),
+    principles: getLocalizedContent(p, 'principles'),
+    architecture: getLocalizedContent(p, 'architecture')
+  })), [appLang]);
+
+  const localizedCodingTools = useMemo(() => CODING_TOOLS.map(t => ({
+    ...t,
+    name: getLocalizedContent(t, 'name'), // Sometimes name changes?
+    description: getLocalizedContent(t, 'description'),
+    coreMechanism: getLocalizedContent(t, 'coreMechanism'),
+    features: getLocalizedContent(t, 'features')
+  })), [appLang]);
+
+  const localizedExamples = useMemo(() => BUILD_EXAMPLES.map(e => ({
+    ...e,
+    title: getLocalizedContent(e, 'title'),
+    description: getLocalizedContent(e, 'description'),
+    explanation: getLocalizedContent(e, 'explanation')
+  })), [appLang]);
+
+  // Get current UI labels
+  const ui = Object.keys(UI_TEXT).reduce((acc, key) => {
+    acc[key] = (UI_TEXT as any)[key][appLang];
+    return acc;
+  }, {} as any);
+
 
   const filteredTools = useMemo(() => {
-    return TOOLS.filter(tool => {
+    return localizedTools.filter(tool => {
       const matchesLang = selectedLanguage === 'All' || tool.languages.includes(selectedLanguage as Language);
       const matchesSearch = tool.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             tool.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesLang && matchesSearch;
     });
-  }, [selectedLanguage, searchQuery]);
+  }, [selectedLanguage, searchQuery, localizedTools]);
 
   // Data for Chart View
   const chartData = filteredTools.map(t => ({
@@ -58,18 +104,40 @@ const App: React.FC = () => {
         <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[100px]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
+        {/* Top Bar (Language Toggle) */}
+        <div className="flex justify-end mb-4">
+           <div className="flex items-center bg-slate-800/80 backdrop-blur rounded-full p-1 border border-slate-700">
+              <Globe size={16} className="ml-3 mr-2 text-slate-400" />
+              <div className="flex">
+                 {(['en', 'zh', 'ja'] as SupportedLang[]).map(lang => (
+                    <button
+                      key={lang}
+                      onClick={() => setAppLang(lang)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                         appLang === lang 
+                         ? 'bg-indigo-600 text-white shadow-md' 
+                         : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                       {lang.toUpperCase()}
+                    </button>
+                 ))}
+              </div>
+           </div>
+        </div>
+
         {/* Header Section */}
         <header className="mb-8 text-center">
           <div className="inline-flex items-center justify-center p-3 mb-4 bg-slate-800/50 border border-slate-700 rounded-2xl backdrop-blur-md">
             <Cpu className="text-indigo-400 mr-3" size={32} />
             <h1 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-              AI Agent Stack
+              {ui.headerTitle}
             </h1>
           </div>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-            Explore the best tools, frameworks, and architectural patterns for building autonomous agents.
+            {ui.headerSubtitle}
           </p>
 
           {/* Main Navigation */}
@@ -83,7 +151,7 @@ const App: React.FC = () => {
               }`}
             >
               <Wrench size={18} />
-              Tools Explorer
+              {ui.navTools}
             </button>
             <button
               onClick={() => setCurrentPage('patterns')}
@@ -94,7 +162,7 @@ const App: React.FC = () => {
               }`}
             >
               <Layers size={18} />
-              Agent Patterns
+              {ui.navPatterns}
             </button>
             <button
               onClick={() => setCurrentPage('ides')}
@@ -105,7 +173,7 @@ const App: React.FC = () => {
               }`}
             >
               <MonitorPlay size={18} />
-              AI IDEs
+              {ui.navIdes}
             </button>
              <button
               onClick={() => setCurrentPage('build')}
@@ -116,7 +184,7 @@ const App: React.FC = () => {
               }`}
             >
               <Hammer size={18} />
-              Build Guide
+              {ui.navBuild}
             </button>
           </nav>
         </header>
@@ -139,7 +207,7 @@ const App: React.FC = () => {
                         : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
                     }`}
                   >
-                    {lang}
+                    {lang === 'All' ? ui.filterAll : lang}
                   </button>
                 ))}
               </div>
@@ -150,7 +218,7 @@ const App: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                   <input
                     type="text"
-                    placeholder="Search tools..."
+                    placeholder={ui.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm text-white placeholder-slate-500"
@@ -161,12 +229,14 @@ const App: React.FC = () => {
                 <div className="flex bg-slate-800 rounded-xl p-1">
                   <button
                     onClick={() => setViewMode('grid')}
+                    title={ui.viewGrid}
                     className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
                   >
                     <LayoutGrid size={18} />
                   </button>
                   <button
                     onClick={() => setViewMode('chart')}
+                    title={ui.viewChart}
                     className={`p-2 rounded-lg transition-all ${viewMode === 'chart' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'}`}
                   >
                     <BarChart3 size={18} />
@@ -179,7 +249,7 @@ const App: React.FC = () => {
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredTools.map(tool => (
-                  <ToolCard key={tool.id} tool={tool} onSelect={setSelectedTool} />
+                  <ToolCard key={tool.id} tool={tool} onSelect={setSelectedTool} ui={ui} patterns={localizedPatterns} />
                 ))}
               </div>
             ) : (
@@ -196,7 +266,7 @@ const App: React.FC = () => {
                         name="Complexity" 
                         unit="/10" 
                         stroke="#64748b" 
-                        label={{ value: 'Complexity (Learning Curve)', position: 'insideBottom', offset: -10, fill: '#64748b' }} 
+                        label={{ value: 'Complexity', position: 'insideBottom', offset: -10, fill: '#64748b' }} 
                         domain={[0, 10]}
                       />
                       <YAxis 
@@ -229,29 +299,29 @@ const App: React.FC = () => {
 
             {filteredTools.length === 0 && (
               <div className="text-center py-20">
-                <p className="text-slate-500 text-lg">No tools found matching your criteria.</p>
+                <p className="text-slate-500 text-lg">{ui.noToolsFound}</p>
                 <button 
                   onClick={() => {setSearchQuery(''); setSelectedLanguage('All');}}
                   className="mt-4 text-indigo-400 hover:text-indigo-300 underline"
                 >
-                  Clear filters
+                  {ui.clearFilters}
                 </button>
               </div>
             )}
           </div>
         ) : currentPage === 'patterns' ? (
-          <PatternsView />
+          <PatternsView patterns={localizedPatterns} ui={ui} />
         ) : currentPage === 'ides' ? (
-          <IdeView />
+          <IdeView tools={localizedCodingTools} patterns={localizedPatterns} ui={ui} />
         ) : (
-          <BuildGuideView />
+          <BuildGuideView examples={localizedExamples} ui={ui} />
         )}
 
       </div>
 
       {/* Overlays */}
       <ChatOverlay />
-      <ToolDetailModal tool={selectedTool} onClose={() => setSelectedTool(null)} />
+      <ToolDetailModal tool={selectedTool} onClose={() => setSelectedTool(null)} appLang={appLang} />
     </div>
   );
 };
