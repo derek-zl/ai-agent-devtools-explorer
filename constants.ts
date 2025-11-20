@@ -1,5 +1,6 @@
 
-import { Tool, Language, Pattern, CodingTool } from './types';
+
+import { Tool, Language, Pattern, CodingTool, BuilderExample } from './types';
 
 export const TOOLS: Tool[] = [
   {
@@ -416,6 +417,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Cursor',
     type: 'IDE',
     coreMechanism: 'Shadow Workspace & RAG',
+    relatedPatternId: 'shadow-workspace',
     description: 'A VS Code fork that integrates "Composer" (Agent) and "Tab" (FIM). It uses a shadow workspace to generate code diffs and RAG to index the entire codebase for context-aware answers.',
     features: ['Shadow Workspace (Composer)', 'Local/Remote Codebase Indexing', 'Fill-In-Middle Autocomplete'],
     website: 'https://cursor.com'
@@ -425,6 +427,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Windsurf (Codeium)',
     type: 'IDE',
     coreMechanism: 'Deep Context Flows (Cascades)',
+    relatedPatternId: 'explicit-function',
     description: 'Built by Codeium. Features "Flows" which allow the agent to run terminal commands, read output, and edit files iteratively. It maintains a deep understanding of user intent via "Cascades".',
     features: ['Agentic Terminal Access', 'Deep Context Awareness', 'Iterative Refactoring'],
     website: 'https://codeium.com/windsurf'
@@ -434,6 +437,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Trae',
     type: 'IDE',
     coreMechanism: 'Data-Driven Context & Auto-Apply',
+    relatedPatternId: 'rag-agent',
     description: 'ByteDance\'s AI IDE. Similar to Cursor/Windsurf, it focuses on high-speed code generation and intelligent context gathering from the project structure.',
     features: ['Intelligent Context', 'Chat-to-Code', 'Codebase Visualization'],
     website: 'https://www.trae.ai'
@@ -443,6 +447,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Zed',
     type: 'IDE',
     coreMechanism: 'CRDT & GPU Rendering',
+    relatedPatternId: 'native-crdt',
     description: 'High-performance Rust-based editor. Uses CRDTs natively for collaboration, treating the AI as a collaborator in the document rather than a plugin wrapper.',
     features: ['Native CRDT', 'GPU Accelerated', 'Model Agnostic Chat'],
     website: 'https://zed.dev'
@@ -452,6 +457,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Aider',
     type: 'CLI',
     coreMechanism: 'AST-based "Repo Map"',
+    relatedPatternId: 'ast-semantic',
     description: 'A CLI tool that works with your local git repo. It generates a "Repo Map" (a compressed AST summary of your code) to fit the entire project structure into the LLM context window.',
     features: ['Git Integration', 'AST Repo Map', 'Terminal UI'],
     website: 'https://aider.chat'
@@ -461,6 +467,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'CodeBuddy',
     type: 'Extension',
     coreMechanism: 'Sandbox Execution',
+    relatedPatternId: 'shadow-workspace',
     description: 'An agent that can not only write code but execute it in a sandbox to verify functionality before committing changes.',
     features: ['Sandboxed Execution', 'Self-Correction', 'Web Search'],
     website: 'https://codebuddy.ca'
@@ -470,6 +477,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Kiro',
     type: 'IDE',
     coreMechanism: 'Agentic Workflow',
+    relatedPatternId: 'multi-agent',
     description: 'A newer entrant focusing on autonomous agent workflows directly within the editor, automating repetitive refactoring tasks.',
     features: ['Task Automation', 'Agentic Refactoring'],
     website: 'https://kiro.ai'
@@ -479,6 +487,7 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Qoder',
     type: 'Platform',
     coreMechanism: 'End-to-End Testing Agent',
+    relatedPatternId: 'shadow-workspace',
     description: 'Focuses on ensuring code quality by generating and running tests (Shadow Workspace pattern) to validate generated code.',
     features: ['Test-Driven Generation', 'Quality Assurance'],
     website: 'https://qoder.ai'
@@ -488,15 +497,17 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Antigravity',
     type: 'IDE',
     coreMechanism: 'Visual Debugging & Object Tracking',
+    relatedPatternId: 'structured-text',
     description: 'Python-focused IDE that visualizes code execution flow. The AI uses this runtime data to understand bugs better than static analysis.',
     features: ['Time-Travel Debugging', 'Visual Flow', 'Runtime Analysis'],
-    website: 'https://antigravity.ai' // Conceptual/Placeholder if niche
+    website: 'https://antigravity.ai'
   },
   {
     id: 'codex-cli',
     name: 'OpenAI Codex / GitHub Copilot CLI',
     type: 'CLI',
     coreMechanism: 'Command Translation',
+    relatedPatternId: 'structured-text',
     description: 'Translates natural language into shell commands (Bash, PowerShell, Zsh). Uses specialized fine-tuning for shell syntax.',
     features: ['Natural Language to Bash', 'Command Explanation'],
     website: 'https://githubnext.com/projects/copilot-cli'
@@ -506,9 +517,217 @@ export const CODING_TOOLS: CodingTool[] = [
     name: 'Google Cloud Code',
     type: 'Extension',
     coreMechanism: 'Infrastructure aware (Gemini)',
+    relatedPatternId: 'explicit-function',
     description: 'IDE extension for VS Code/IntelliJ. Uses Gemini to understand Kubernetes manifests, Terraform, and Cloud deployment configurations.',
     features: ['Kubernetes YAML Gen', 'Cloud Debugging', 'Duet AI Integration'],
     website: 'https://cloud.google.com/code'
+  }
+];
+
+export const BUILD_EXAMPLES: BuilderExample[] = [
+  {
+    id: 'simple-agent',
+    title: 'Minimal General Agent',
+    description: 'A 30-line Python script that creates a chatbot capable of checking weather and time using Function Calling.',
+    language: 'Python',
+    difficulty: 'Beginner',
+    explanation: 'This example uses standard JSON-based tool definitions. It defines a `tools` list and a loop that checks `if tool_calls` exists in the response. If it does, it runs the function and sends the result back.',
+    code: `import os
+from google import genai
+from google.genai import types
+
+# 1. Setup Client
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+# 2. Define Tools (The actual functions)
+def get_weather(city: str):
+    """Returns fake weather data."""
+    return f"The weather in {city} is Sunny and 75F."
+
+def get_time(timezone: str):
+    """Returns fake time data."""
+    return f"The time in {timezone} is 2:00 PM."
+
+# 3. Create the Tool Configuration
+# We wrap the functions so the SDK can inspect them
+tools_config = [get_weather, get_time]
+
+# 4. Chat Loop
+chat = client.chats.create(
+    model="gemini-2.0-flash",
+    config=types.GenerateContentConfig(
+        tools=tools_config,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+            disable=False # SDK handles the loop automatically!
+        )
+    )
+)
+
+print("Agent Ready. Type 'quit' to exit.")
+while True:
+    user_input = input("User: ")
+    if user_input.lower() == "quit": break
+    
+    # The SDK executes the function and sends the result back automatically
+    response = chat.send_message(user_input)
+    print(f"Agent: {response.text}")`
+  },
+  {
+    id: 'coding-agent',
+    title: 'Minimal Coding Agent',
+    description: 'An agent that can read files, write code, and execute commands to fix bugs. This is the core logic behind tools like Aider or OpenDevin.',
+    language: 'Python',
+    difficulty: 'Intermediate',
+    explanation: 'This agent has "hands". We give it `read_file`, `write_file`, and `run_shell` tools. The system instruction tells it to act like a developer.',
+    code: `import os
+import subprocess
+from google import genai
+from google.genai import types
+
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+# --- The "Hands" of the Agent ---
+
+def read_file(filepath: str):
+    """Reads content of a file."""
+    try:
+        with open(filepath, 'r') as f: return f.read()
+    except Exception as e: return str(e)
+
+def write_file(filepath: str, content: str):
+    """Writes content to a file."""
+    try:
+        with open(filepath, 'w') as f: f.write(content)
+        return "Success"
+    except Exception as e: return str(e)
+
+def run_shell(command: str):
+    """Executes a shell command and returns stdout/stderr."""
+    # WARNING: Dangerous in production without sandbox
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return f"STDOUT: {result.stdout}\\nSTDERR: {result.stderr}"
+
+# --- Agent Setup ---
+
+sys_prompt = """
+You are a Coding Agent. 
+1. Always read the file first before editing.
+2. Use write_file to apply changes.
+3. Use run_shell to verify your code works.
+"""
+
+chat = client.chats.create(
+    model="gemini-2.0-flash",
+    config=types.GenerateContentConfig(
+        system_instruction=sys_prompt,
+        tools=[read_file, write_file, run_shell],
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=False)
+    )
+)
+
+# --- Interactive Session ---
+print("Coding Agent Initialized. (pwd: " + os.getcwd() + ")")
+while True:
+    req = input("Task > ")
+    if req == "exit": break
+    res = chat.send_message(req)
+    print(f"Agent > {res.text}")
+`
+  },
+  {
+    id: 'langgraph-teacher',
+    title: 'LangGraph Multi-Teacher Agent',
+    description: 'A stateful Routing Agent that acts as a Supervisor, directing your questions to specialized sub-agents (Coder, English Teacher, Logic Teacher, Doctor).',
+    language: 'Python',
+    difficulty: 'Intermediate',
+    explanation: 'This uses LangGraph\'s `StateGraph`. We define a "Router" node that classifies the user intention (e.g., "This is a coding question"). Based on that class, the graph transitions to the specific "Teacher" node. Each teacher has a unique System Prompt.',
+    code: `import os
+from typing import Annotated, Literal, TypedDict
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.graph import StateGraph, END
+from langgraph.graph.message import add_messages
+
+# 1. Setup LLM
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", api_key=os.environ["GEMINI_API_KEY"])
+
+# 2. Define State (Shared memory for the graph)
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+
+# 3. Define Teacher Nodes
+def create_teacher_node(role: str, prompt: str):
+    """Factory to create specialized teacher functions."""
+    def teacher_node(state: AgentState):
+        # Combine system prompt with conversation history
+        messages = [SystemMessage(content=prompt)] + state["messages"]
+        response = llm.invoke(messages)
+        return {"messages": [response]}
+    return teacher_node
+
+# Instantiate specialized nodes
+programming_node = create_teacher_node("coder", "You are a Programming Teacher. Explain concepts with code examples.")
+english_node = create_teacher_node("english", "You are an English Teacher. Correct grammar and explain vocabulary.")
+logic_node = create_teacher_node("logic", "You are a Logic Teacher. Analyze arguments and point out fallacies.")
+doctor_node = create_teacher_node("doctor", "You are a Family Doctor. Provide general health advice but always disclaim you are an AI.")
+
+# 4. Define Router (The "Supervisor")
+def router_node(state: AgentState) -> Literal["coder", "english", "logic", "doctor"]:
+    last_msg = state["messages"][-1].content
+    # Ask LLM to classify intent
+    router_prompt = [
+        SystemMessage(content="Classify the user input into one of these categories: 'coder', 'english', 'logic', 'doctor'. Return ONLY the category name."),
+        HumanMessage(content=last_msg)
+    ]
+    category = llm.invoke(router_prompt).content.strip().lower()
+    
+    # Fallback safety
+    valid_cats = ["coder", "english", "logic", "doctor"]
+    if category not in valid_cats:
+        return "logic" # Default fallback
+    return category
+
+# 5. Build Graph
+workflow = StateGraph(AgentState)
+
+# Add nodes
+workflow.add_node("coder", programming_node)
+workflow.add_node("english", english_node)
+workflow.add_node("logic", logic_node)
+workflow.add_node("doctor", doctor_node)
+
+# Add conditional entry point (Router)
+# The graph starts by calling 'router_node', which returns the name of the next node to visit.
+workflow.set_conditional_entry_point(
+    router_node,
+    {
+        "coder": "coder",
+        "english": "english",
+        "logic": "logic",
+        "doctor": "doctor"
+    }
+)
+
+# All nodes finish after answering
+workflow.add_edge("coder", END)
+workflow.add_edge("english", END)
+workflow.add_edge("logic", END)
+workflow.add_edge("doctor", END)
+
+app = workflow.compile()
+
+# 6. Run (Simulation)
+print("Teacher Agent Router Ready...")
+# In a real app, use a loop. Here is one interaction:
+user_in = "How do I write a for loop in Python?"
+print(f"Student: {user_in}")
+
+# Stream the output
+for event in app.stream({"messages": [HumanMessage(content=user_in)]}):
+    for node_name, value in event.items():
+        print(f"--- Node: {node_name} ---")
+        print(value['messages'][-1].content)
+`
   }
 ];
 

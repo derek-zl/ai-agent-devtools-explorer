@@ -40,9 +40,20 @@ export interface CodingTool {
   name: string;
   type: CodingToolType;
   coreMechanism: string; // The architectural pattern used (e.g. Shadow Workspace)
+  relatedPatternId?: string; // Link to the Pattern ID
   description: string;
   features: string[];
   website: string;
+}
+
+export interface BuilderExample {
+  id: string;
+  title: string;
+  description: string;
+  language: 'Python' | 'Node.js';
+  difficulty: 'Beginner' | 'Intermediate';
+  code: string;
+  explanation: string;
 }
 
 export interface ChatMessage {

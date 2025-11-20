@@ -7,11 +7,12 @@ import ChatOverlay from './components/ChatOverlay';
 import ToolDetailModal from './components/ToolDetailModal';
 import PatternsView from './components/PatternsView';
 import IdeView from './components/IdeView';
+import BuildGuideView from './components/BuildGuideView';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ZAxis } from 'recharts';
-import { Search, LayoutGrid, BarChart3, Cpu, Layers, Wrench, MonitorPlay } from 'lucide-react';
+import { Search, LayoutGrid, BarChart3, Cpu, Layers, Wrench, MonitorPlay, Hammer } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<'tools' | 'patterns' | 'ides'>('tools');
+  const [currentPage, setCurrentPage] = useState<'tools' | 'patterns' | 'ides' | 'build'>('tools');
   const [selectedLanguage, setSelectedLanguage] = useState<Language | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'chart'>('grid');
@@ -105,6 +106,17 @@ const App: React.FC = () => {
             >
               <MonitorPlay size={18} />
               AI IDEs
+            </button>
+             <button
+              onClick={() => setCurrentPage('build')}
+              className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                currentPage === 'build' 
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50' 
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Hammer size={18} />
+              Build Guide
             </button>
           </nav>
         </header>
@@ -229,8 +241,10 @@ const App: React.FC = () => {
           </div>
         ) : currentPage === 'patterns' ? (
           <PatternsView />
-        ) : (
+        ) : currentPage === 'ides' ? (
           <IdeView />
+        ) : (
+          <BuildGuideView />
         )}
 
       </div>

@@ -1,10 +1,19 @@
 
-import React from 'react';
-import { CODING_TOOLS } from '../constants';
-import { CodingToolType } from '../types';
-import { Monitor, Terminal, Puzzle, Layers, ExternalLink, Zap, Search, GitBranch, Code2, Box } from 'lucide-react';
+import React, { useState } from 'react';
+import { CODING_TOOLS, PATTERNS } from '../constants';
+import { CodingToolType, Pattern } from '../types';
+import { Monitor, Terminal, Puzzle, Layers, ExternalLink, Zap, Search, GitBranch, Code2, Box, ArrowRight } from 'lucide-react';
+import PatternDetailModal from './PatternDetailModal';
 
 const IdeView: React.FC = () => {
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null);
+
+  const handlePatternClick = (patternId: string | undefined) => {
+    if (!patternId) return;
+    const found = PATTERNS.find(p => p.id === patternId);
+    if (found) setSelectedPattern(found);
+  };
+
   const getIcon = (type: CodingToolType) => {
     switch (type) {
       case 'IDE': return <Monitor className="text-blue-400" size={24} />;
@@ -72,10 +81,20 @@ const IdeView: React.FC = () => {
 
             {/* Core Mechanism Badge */}
             <div className="mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-950/30 border border-indigo-500/20 text-indigo-300 text-sm font-medium">
-                {getMechanismIcon(tool.coreMechanism)}
-                {tool.coreMechanism}
-              </div>
+              <button 
+                onClick={() => handlePatternClick(tool.relatedPatternId)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm font-medium transition-all w-full justify-between ${
+                    tool.relatedPatternId 
+                    ? 'bg-indigo-950/30 border-indigo-500/20 text-indigo-300 hover:bg-indigo-900/50 cursor-pointer' 
+                    : 'bg-slate-800/50 border-slate-700 text-slate-400 cursor-default'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                    {getMechanismIcon(tool.coreMechanism)}
+                    {tool.coreMechanism}
+                </span>
+                {tool.relatedPatternId && <ArrowRight size={14} className="opacity-50" />}
+              </button>
             </div>
 
             {/* Description */}
@@ -97,6 +116,10 @@ const IdeView: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {selectedPattern && (
+        <PatternDetailModal pattern={selectedPattern} onClose={() => setSelectedPattern(null)} />
+      )}
     </div>
   );
 };
